@@ -1,0 +1,16 @@
+<div class="cms-section-header">
+    <div>
+        <div class="section-index">@Eyebrow</div>
+        <h2>@Title</h2>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(Description))
+    {
+        <p>@Description</p>
+    }
+</div>
+
+@code {
+    [Parameter] public string Eyebrow { get; set; } = string.Empty;
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Description { get; set; } = string.Empty;
+}

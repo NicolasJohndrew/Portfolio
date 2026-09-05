@@ -1,4 +1,5 @@
 @page "/admin"
+@using GamePortfolio.Components
 @inject ProjectService ProjectService
 
 <PageTitle>Project Console — Johnny Nicolas</PageTitle>
@@ -15,44 +16,22 @@
     {
         <section class="login-panel">
             <a class="admin-back" href="/">← Back to portfolio</a>
-
             <div class="login-card">
                 <div class="admin-badge">JN // ADMIN</div>
-
                 <h1>Project Console</h1>
+                <p>Authenticate to manage the complete portfolio content.</p>
 
-                <p>
-                    Authenticate to manage the game library.
-                </p>
-
-                <form @onsubmit="HandleLogin"
-                      @onsubmit:preventDefault>
-
-                    <label for="password">
-                        Admin password
-                    </label>
-
-                    <input id="password"
-                           type="password"
-                           autocomplete="current-password"
-                           @bind="password"
-                           placeholder="••••••••••••" />
+                <form @onsubmit="HandleLogin" @onsubmit:preventDefault>
+                    <label for="password">Admin password</label>
+                    <input id="password" type="password" autocomplete="current-password" @bind="password" placeholder="••••••••••••" />
 
                     @if (!string.IsNullOrWhiteSpace(errorMessage))
                     {
-                        <div class="form-error">
-                            @errorMessage
-                        </div>
+                        <div class="form-error">@errorMessage</div>
                     }
 
-                    <button class="btn btn-primary admin-login-btn"
-                            type="submit"
-                            disabled="@isSaving">
-
-                        @(isSaving
-                            ? "Authenticating..."
-                            : "Enter console")
-
+                    <button class="btn btn-primary admin-login-btn" type="submit" disabled="@isSaving">
+                        @(isSaving ? "Authenticating..." : "Enter console")
                     </button>
                 </form>
             </div>
@@ -61,730 +40,562 @@
     else
     {
         <header class="admin-topbar">
-
             <a class="brand" href="/">
-                <span class="brand-mark">
-                    JN
-                </span>
-
+                <span class="brand-mark">@content.General.BrandMark</span>
                 <span class="brand-copy">
-                    <strong>
-                        Project Console
-                    </strong>
-
-                    <small>
-                        CONTENT MANAGEMENT
-                    </small>
+                    <strong>Project Console</strong>
+                    <small>FULL CONTENT MANAGEMENT</small>
                 </span>
             </a>
 
             <div class="admin-top-actions">
-
-                <a class="admin-preview-link"
-                   href="/"
-                   target="_blank">
-
-                    View portfolio ↗
-                </a>
-
-                <button class="admin-text-button"
-                        type="button"
-                        @onclick="HandleLogout">
-
-                    Sign out
-                </button>
-
+                <a class="admin-preview-link" href="/" target="_blank">View portfolio ↗</a>
+                <button class="admin-text-button" type="button" @onclick="HandleLogout">Sign out</button>
             </div>
         </header>
 
-        <main class="admin-main">
-
-            <div class="admin-heading">
-
+        <main class="admin-main cms-main">
+            <div class="admin-heading cms-heading">
                 <div>
-                    <div class="section-index">
-                        PROJECT LIBRARY
-                    </div>
-
-                    <h1>
-                        Game builds
-                    </h1>
-
-                    <p>
-                        Add or update the projects shown on the public portfolio.
-                    </p>
+                    <div class="section-index">PORTFOLIO CMS</div>
+                    <h1>Content console</h1>
+                    <p>Edit the public portfolio without touching the source code.</p>
                 </div>
-
-                <button class="btn btn-primary"
-                        type="button"
-                        @onclick="OpenCreate">
-
-                    + Add game
-                </button>
-
             </div>
 
             @if (!string.IsNullOrWhiteSpace(successMessage))
             {
-                <div class="admin-toast success">
-                    @successMessage
-                </div>
+                <div class="admin-toast success">@successMessage</div>
             }
-
             @if (!string.IsNullOrWhiteSpace(errorMessage))
             {
-                <div class="admin-toast error">
-                    @errorMessage
-                </div>
+                <div class="admin-toast error">@errorMessage</div>
             }
 
-            <section class="admin-table-shell">
-
-                @if (loadingProjects)
+            <nav class="cms-tabs" aria-label="CMS sections">
+                @foreach (var tab in tabs)
                 {
-                    <div class="admin-empty">
-                        Loading project library...
-                    </div>
+                    <button type="button"
+                            class="cms-tab @(activeTab == tab.Key ? "active" : "")"
+                            @onclick="() => SelectTab(tab.Key)">
+                        <span>@tab.Index</span>
+                        @tab.Label
+                    </button>
                 }
-                else if (projects.Count == 0)
+            </nav>
+
+            @if (loadingContent)
+            {
+                <section class="cms-panel"><div class="admin-empty">Loading CMS content...</div></section>
+            }
+            else
+            {
+                @switch (activeTab)
                 {
-                    <div class="admin-empty">
+                    case "general":
+                        <section class="cms-panel">
+                            <CmsSectionHeader Eyebrow="SITE SETTINGS" Title="General" Description="Brand identity and footer copy used across the portfolio." />
+                            <form @onsubmit="SaveContent" @onsubmit:preventDefault>
+                                <div class="cms-form-grid">
+                                    <Field Label="Display name"><input @bind="content.General.SiteName" maxlength="100" /></Field>
+                                    <Field Label="Brand mark"><input @bind="content.General.BrandMark" maxlength="8" /></Field>
+                                    <Field Label="Brand subline"><input @bind="content.General.BrandSubline" maxlength="80" /></Field>
+                                    <Field Label="Availability text"><input @bind="content.General.AvailabilityText" maxlength="100" /></Field>
+                                    <Field Label="Footer text"><input @bind="content.General.FooterText" maxlength="150" /></Field>
+                                    <Field Label="Footer technology text"><input @bind="content.General.FooterTechText" maxlength="150" /></Field>
+                                </div>
+                                <SaveBar Saving="isSaving" />
+                            </form>
+                        </section>
+                        break;
 
-                        <strong>
-                            No projects yet.
-                        </strong>
+                    case "hero":
+                        <section class="cms-panel">
+                            <CmsSectionHeader Eyebrow="LANDING SCREEN" Title="Hero" Description="Everything visible in the opening game-style screen." />
+                            <form @onsubmit="SaveContent" @onsubmit:preventDefault>
+                                <div class="cms-form-grid">
+                                    <Field Label="Eyebrow prefix"><input @bind="content.Hero.EyebrowPrefix" /></Field>
+                                    <Field Label="Eyebrow text"><input @bind="content.Hero.EyebrowText" /></Field>
+                                    <Field Label="Heading line 1"><input @bind="content.Hero.HeadingLine1" /></Field>
+                                    <Field Label="Heading line 2"><input @bind="content.Hero.HeadingLine2" /></Field>
+                                    <Field Label="Description" Wide="true"><textarea rows="4" @bind="content.Hero.Description"></textarea></Field>
+                                    <Field Label="Primary CTA label"><input @bind="content.Hero.PrimaryCtaLabel" /></Field>
+                                    <Field Label="Primary CTA link"><input @bind="content.Hero.PrimaryCtaHref" /></Field>
+                                    <Field Label="Secondary CTA label"><input @bind="content.Hero.SecondaryCtaLabel" /></Field>
+                                    <Field Label="Secondary CTA link"><input @bind="content.Hero.SecondaryCtaHref" /></Field>
+                                    <Field Label="Meta 1 label"><input @bind="content.Hero.Meta1Label" /></Field>
+                                    <Field Label="Meta 1 value"><input @bind="content.Hero.Meta1Value" /></Field>
+                                    <Field Label="Meta 2 label"><input @bind="content.Hero.Meta2Label" /></Field>
+                                    <Field Label="Meta 2 value"><input @bind="content.Hero.Meta2Value" /></Field>
+                                    <Field Label="Meta 3 label"><input @bind="content.Hero.Meta3Label" /></Field>
+                                    <Field Label="Meta 3 value"><input @bind="content.Hero.Meta3Value" /></Field>
+                                    <Field Label="HUD top-left"><input @bind="content.Hero.VisualTopLeft" /></Field>
+                                    <Field Label="HUD top-right"><input @bind="content.Hero.VisualTopRight" /></Field>
+                                    <Field Label="HUD bottom label"><input @bind="content.Hero.VisualBottomLabel" /></Field>
+                                    <Field Label="HUD bottom value"><input @bind="content.Hero.VisualBottomValue" /></Field>
+                                    <Field Label="Floating tag 1"><input @bind="content.Hero.FloatingTag1" /></Field>
+                                    <Field Label="Floating tag 2"><input @bind="content.Hero.FloatingTag2" /></Field>
+                                    <Field Label="Scroll cue"><input @bind="content.Hero.ScrollLabel" /></Field>
+                                </div>
+                                <SaveBar Saving="isSaving" />
+                            </form>
+                        </section>
+                        break;
 
-                        <span>
-                            Add the first game to populate the portfolio.
-                        </span>
+                    case "about":
+                        <section class="cms-panel">
+                            <CmsSectionHeader Eyebrow="PLAYER PROFILE" Title="About" Description="Profile copy and the four highlight cards." />
+                            <form @onsubmit="SaveContent" @onsubmit:preventDefault>
+                                <div class="cms-form-grid">
+                                    <Field Label="Section label"><input @bind="content.About.SectionLabel" /></Field>
+                                    <Field Label="Heading line 1"><input @bind="content.About.HeadingLine1" /></Field>
+                                    <Field Label="Heading line 2"><input @bind="content.About.HeadingLine2" /></Field>
+                                    <Field Label="Paragraph 1" Wide="true"><textarea rows="5" @bind="content.About.Paragraph1"></textarea></Field>
+                                    <Field Label="Paragraph 2" Wide="true"><textarea rows="5" @bind="content.About.Paragraph2"></textarea></Field>
+                                </div>
 
-                    </div>
+                                <div class="cms-subheading">PROFILE HIGHLIGHTS</div>
+                                <div class="cms-highlight-grid">
+                                    <HighlightEditor Number="01" @bind-Title="content.About.Highlight1Title" @bind-Subtitle="content.About.Highlight1Subtitle" />
+                                    <HighlightEditor Number="02" @bind-Title="content.About.Highlight2Title" @bind-Subtitle="content.About.Highlight2Subtitle" />
+                                    <HighlightEditor Number="03" @bind-Title="content.About.Highlight3Title" @bind-Subtitle="content.About.Highlight3Subtitle" />
+                                    <HighlightEditor Number="04" @bind-Title="content.About.Highlight4Title" @bind-Subtitle="content.About.Highlight4Subtitle" />
+                                </div>
+                                <SaveBar Saving="isSaving" />
+                            </form>
+                        </section>
+                        break;
+
+                    case "skills":
+                        <section class="cms-panel">
+                            <CmsSectionHeader Eyebrow="LOADOUT" Title="Skills" Description="Edit the section heading and maintain the loadout items shown by category." />
+                            <form @onsubmit="SaveContent" @onsubmit:preventDefault>
+                                <div class="cms-form-grid compact">
+                                    <Field Label="Section label"><input @bind="content.Skills.SectionLabel" /></Field>
+                                    <Field Label="Heading"><input @bind="content.Skills.Heading" /></Field>
+                                </div>
+                                <SaveBar Saving="isSaving" Compact="true" />
+                            </form>
+
+                            <div class="cms-list-toolbar">
+                                <div class="cms-subheading">LOADOUT ITEMS</div>
+                                <button class="btn btn-primary" type="button" @onclick="OpenCreateSkill">+ Add skill</button>
+                            </div>
+
+                            <div class="cms-record-list">
+                                @foreach (var skill in skills.OrderBy(x => x.Category).ThenBy(x => x.SortOrder).ThenBy(x => x.Name))
+                                {
+                                    <article class="cms-record-row">
+                                        <div class="cms-record-index">@skill.SortOrder.ToString("00")</div>
+                                        <div class="cms-record-copy"><small>@skill.Category</small><strong>@skill.Name</strong></div>
+                                        <div class="cms-record-actions">
+                                            <button type="button" @onclick="() => OpenEditSkill(skill)">Edit</button>
+                                            <button class="danger" type="button" @onclick="() => DeleteSkill(skill)">Delete</button>
+                                        </div>
+                                    </article>
+                                }
+                            </div>
+                        </section>
+                        break;
+
+                    case "experience":
+                        <section class="cms-panel">
+                            <CmsSectionHeader Eyebrow="TIMELINE" Title="Experience" Description="Work, internship, education, or any timeline item you want to show." />
+                            <form @onsubmit="SaveContent" @onsubmit:preventDefault>
+                                <div class="cms-form-grid compact">
+                                    <Field Label="Section label"><input @bind="content.Experience.SectionLabel" /></Field>
+                                </div>
+                                <SaveBar Saving="isSaving" Compact="true" />
+                            </form>
+
+                            <div class="cms-list-toolbar">
+                                <div class="cms-subheading">EXPERIENCE ITEMS</div>
+                                <button class="btn btn-primary" type="button" @onclick="OpenCreateExperience">+ Add item</button>
+                            </div>
+
+                            <div class="cms-record-list">
+                                @foreach (var item in experience.OrderBy(x => x.SortOrder).ThenBy(x => x.Id))
+                                {
+                                    <article class="cms-record-row experience-record">
+                                        <div class="cms-record-index">@item.SortOrder.ToString("00")</div>
+                                        <div class="cms-record-copy">
+                                            <small>@item.Period · @item.Organization</small>
+                                            <strong>@item.Title</strong>
+                                            <span>@Truncate(item.Description, 120)</span>
+                                        </div>
+                                        <div class="cms-record-actions">
+                                            <button type="button" @onclick="() => OpenEditExperience(item)">Edit</button>
+                                            <button class="danger" type="button" @onclick="() => DeleteExperience(item)">Delete</button>
+                                        </div>
+                                    </article>
+                                }
+                            </div>
+                        </section>
+                        break;
+
+                    case "games":
+                        <section class="cms-panel">
+                            <CmsSectionHeader Eyebrow="PROJECT LIBRARY" Title="Games" Description="Section copy plus every project card shown on the portfolio." />
+                            <form @onsubmit="SaveContent" @onsubmit:preventDefault>
+                                <div class="cms-form-grid">
+                                    <Field Label="Section label"><input @bind="content.Projects.SectionLabel" /></Field>
+                                    <Field Label="Heading"><input @bind="content.Projects.Heading" /></Field>
+                                    <Field Label="Intro" Wide="true"><textarea rows="3" @bind="content.Projects.Intro"></textarea></Field>
+                                    <Field Label="Card kicker — left"><input @bind="content.Projects.KickerLeft" /></Field>
+                                    <Field Label="Card kicker — right"><input @bind="content.Projects.KickerRight" /></Field>
+                                    <Field Label="Project link label"><input @bind="content.Projects.LinkLabel" /></Field>
+                                    <Field Label="No-link label"><input @bind="content.Projects.EmptyLinkLabel" /></Field>
+                                </div>
+                                <SaveBar Saving="isSaving" Compact="true" />
+                            </form>
+
+                            <div class="cms-list-toolbar">
+                                <div class="cms-subheading">GAME BUILDS</div>
+                                <button class="btn btn-primary" type="button" @onclick="OpenCreateProject">+ Add game</button>
+                            </div>
+
+                            <div class="cms-record-list">
+                                @foreach (var project in projects.OrderBy(x => x.SortOrder).ThenByDescending(x => x.Id))
+                                {
+                                    <article class="cms-record-row project-record">
+                                        <div class="admin-thumb">
+                                            @if (!string.IsNullOrWhiteSpace(project.ImageUrl))
+                                            {
+                                                <img src="@project.ImageUrl" alt="" />
+                                            }
+                                            else
+                                            {
+                                                <span>@content.General.BrandMark</span>
+                                            }
+                                        </div>
+                                        <div class="cms-record-copy">
+                                            <small>ORDER @project.SortOrder.ToString("00")</small>
+                                            <strong>@project.Title</strong>
+                                            <span>@Truncate(project.Description, 120)</span>
+                                        </div>
+                                        <div class="cms-record-actions">
+                                            <button type="button" @onclick="() => OpenEditProject(project)">Edit</button>
+                                            <button class="danger" type="button" @onclick="() => DeleteProject(project)">Delete</button>
+                                        </div>
+                                    </article>
+                                }
+                            </div>
+                        </section>
+                        break;
+
+                    case "contact":
+                        <section class="cms-panel">
+                            <CmsSectionHeader Eyebrow="FINAL SCREEN" Title="Contact" Description="Call-to-action copy and public contact details." />
+                            <form @onsubmit="SaveContent" @onsubmit:preventDefault>
+                                <div class="cms-form-grid">
+                                    <Field Label="Section label"><input @bind="content.Contact.SectionLabel" /></Field>
+                                    <Field Label="Heading line 1"><input @bind="content.Contact.HeadingLine1" /></Field>
+                                    <Field Label="Heading line 2"><input @bind="content.Contact.HeadingLine2" /></Field>
+                                    <Field Label="Description" Wide="true"><textarea rows="4" @bind="content.Contact.Description"></textarea></Field>
+                                    <Field Label="Email"><input type="email" @bind="content.Contact.Email" /></Field>
+                                    <Field Label="Location"><input @bind="content.Contact.Location" /></Field>
+                                </div>
+                                <SaveBar Saving="isSaving" />
+                            </form>
+                        </section>
+                        break;
                 }
-                else
-                {
-                    <div class="admin-table">
-
-                        <div class="admin-row admin-row-head">
-
-                            <div>
-                                Cover
-                            </div>
-
-                            <div>
-                                Project
-                            </div>
-
-                            <div>
-                                Link
-                            </div>
-
-                            <div>
-                                Order
-                            </div>
-
-                            <div>
-                                Actions
-                            </div>
-
-                        </div>
-
-                        @foreach (var project in projects
-                            .OrderBy(x => x.SortOrder)
-                            .ThenByDescending(x => x.Id))
-                        {
-                            <div class="admin-row">
-
-                                <div>
-                                    <div class="admin-thumb">
-
-                                        @if (!string.IsNullOrWhiteSpace(project.ImageUrl))
-                                        {
-                                            <img src="@project.ImageUrl"
-                                                 alt="@project.Title cover" />
-                                        }
-                                        else
-                                        {
-                                            <span>
-                                                JN
-                                            </span>
-                                        }
-
-                                    </div>
-                                </div>
-
-                                <div class="admin-project-copy">
-
-                                    <strong>
-                                        @project.Title
-                                    </strong>
-
-                                    <span>
-                                        @Truncate(project.Description, 92)
-                                    </span>
-
-                                </div>
-
-                                <div>
-
-                                    @if (!string.IsNullOrWhiteSpace(project.Link))
-                                    {
-                                        <a class="admin-link"
-                                           href="@project.Link"
-                                           target="_blank"
-                                           rel="noopener noreferrer">
-
-                                            Open ↗
-                                        </a>
-                                    }
-                                    else
-                                    {
-                                        <span class="admin-muted">
-                                            —
-                                        </span>
-                                    }
-
-                                </div>
-
-                                <div class="admin-order">
-                                    @project.SortOrder
-                                </div>
-
-                                <div class="admin-actions">
-
-                                    <button type="button"
-                                            @onclick="() => OpenEdit(project)">
-
-                                        Edit
-                                    </button>
-
-                                    <button class="danger"
-                                            type="button"
-                                            @onclick="() => AskDelete(project)">
-
-                                        Delete
-                                    </button>
-
-                                </div>
-
-                            </div>
-                        }
-
-                    </div>
-                }
-
-            </section>
-
+            }
         </main>
 
-        @if (showEditor)
+        @if (showProjectEditor)
         {
-            <div class="modal-backdrop"
-                 @onclick="CloseEditor">
-
-                <section class="editor-modal"
-                         @onclick:stopPropagation>
-
+            <div class="modal-backdrop" @onclick="CloseEditors">
+                <section class="editor-modal" @onclick:stopPropagation>
                     <div class="editor-header">
-
-                        <div>
-
-                            <div class="section-index">
-
-                                @(editingId.HasValue
-                                    ? "EDIT BUILD"
-                                    : "NEW BUILD")
-
-                            </div>
-
-                            <h2>
-
-                                @(editingId.HasValue
-                                    ? "Update project"
-                                    : "Add project")
-
-                            </h2>
-
-                        </div>
-
-                        <button class="modal-close"
-                                type="button"
-                                @onclick="CloseEditor">
-
-                            ×
-                        </button>
-
+                        <div><div class="section-index">@(editingProjectId.HasValue ? "EDIT BUILD" : "NEW BUILD")</div><h2>@(editingProjectId.HasValue ? "Update project" : "Add project")</h2></div>
+                        <button class="modal-close" type="button" @onclick="CloseEditors">×</button>
                     </div>
-
-                    <form @onsubmit="SaveProject"
-                          @onsubmit:preventDefault>
-
-                        <div class="field">
-
-                            <label for="project-title">
-                                Title
-                            </label>
-
-                            <input id="project-title"
-                                   maxlength="120"
-                                   @bind="draft.Title"
-                                   placeholder="Cantilena: Whispers of the Last Song" />
-
-                        </div>
-
-                        <div class="field">
-
-                            <label for="project-description">
-                                Description
-                            </label>
-
-                            <textarea id="project-description"
-                                      maxlength="2000"
-                                      rows="6"
-                                      @bind="draft.Description"
-                                      placeholder="Describe the game, mechanic, genre, or your role...">
-                            </textarea>
-
-                            <small>
-                                @draft.Description.Length / 2000
-                            </small>
-
-                        </div>
-
-                        <div class="field">
-
-                            <label for="project-link">
-                                Game / project link
-                            </label>
-
-                            <input id="project-link"
-                                   type="url"
-                                   @bind="draft.Link"
-                                   placeholder="https://itch.io/..." />
-
-                        </div>
-
-                        <div class="field">
-
-                            <label for="project-order">
-                                Display order
-                            </label>
-
-                            <input id="project-order"
-                                   type="number"
-                                   min="0"
-                                   @bind="draft.SortOrder" />
-
-                        </div>
-
-                        <div class="field">
-
-                            <label for="project-image">
-                                Cover image URL / path
-                            </label>
-
-                            <input id="project-image"
-                                   type="text"
-                                   @bind="draft.ImageKey"
-                                   placeholder="/images/projects/cantilena.jpg" />
-
-                            <small>
-                                Local path: /images/projects/game.jpg
-                                or external HTTPS image URL
-                            </small>
-
-                            @if (!string.IsNullOrWhiteSpace(draft.ImageKey))
-                            {
-                                <div class="upload-preview">
-
-                                    <img src="@draft.ImageKey"
-                                         alt="Selected project cover preview" />
-
-                                    <span>
-                                        Cover preview
-                                    </span>
-
-                                </div>
-                            }
-
-                        </div>
-
-                        @if (!string.IsNullOrWhiteSpace(editorError))
+                    <form @onsubmit="SaveProject" @onsubmit:preventDefault>
+                        <div class="field"><label>Title</label><input maxlength="120" @bind="projectDraft.Title" /></div>
+                        <div class="field"><label>Description</label><textarea maxlength="2000" rows="6" @bind="projectDraft.Description"></textarea></div>
+                        <div class="field"><label>Game / project link</label><input type="url" @bind="projectDraft.Link" placeholder="https://itch.io/..." /></div>
+                        <div class="field"><label>Cover image URL / path</label><input @bind="projectDraft.ImageKey" placeholder="/images/projects/game.jpg" /><small>Use /images/... from GitHub or an external HTTPS image URL.</small></div>
+                        @if (!string.IsNullOrWhiteSpace(projectDraft.ImageKey))
                         {
-                            <div class="form-error">
-                                @editorError
-                            </div>
+                            <div class="upload-preview"><img src="@projectDraft.ImageKey" alt="Cover preview" /><span>Cover preview</span></div>
                         }
-
-                        <div class="editor-footer">
-
-                            <button class="btn btn-ghost"
-                                    type="button"
-                                    @onclick="CloseEditor">
-
-                                Cancel
-                            </button>
-
-                            <button class="btn btn-primary"
-                                    type="submit"
-                                    disabled="@isSaving">
-
-                                @(isSaving
-                                    ? "Saving..."
-                                    : editingId.HasValue
-                                        ? "Save changes"
-                                        : "Publish game")
-
-                            </button>
-
-                        </div>
-
+                        <div class="field"><label>Display order</label><input type="number" min="0" @bind="projectDraft.SortOrder" /></div>
+                        <EditorError Message="editorError" />
+                        <div class="editor-footer"><button class="btn btn-ghost" type="button" @onclick="CloseEditors">Cancel</button><button class="btn btn-primary" type="submit" disabled="@isSaving">@(isSaving ? "Saving..." : "Save project")</button></div>
                     </form>
-
                 </section>
-
             </div>
         }
 
-        @if (projectToDelete is not null)
+        @if (showSkillEditor)
         {
-            <div class="modal-backdrop"
-                 @onclick="CancelDelete">
-
-                <section class="confirm-modal"
-                         @onclick:stopPropagation>
-
-                    <div class="admin-badge danger-badge">
-                        DELETE BUILD
-                    </div>
-
-                    <h2>
-                        Remove “@projectToDelete.Title”?
-                    </h2>
-
-                    <p>
-                        This will remove the project from the portfolio.
-                        Any image stored in the GitHub repository will remain
-                        there until you remove it manually.
-                    </p>
-
-                    <div class="editor-footer">
-
-                        <button class="btn btn-ghost"
-                                type="button"
-                                @onclick="CancelDelete">
-
-                            Cancel
-                        </button>
-
-                        <button class="btn btn-danger"
-                                type="button"
-                                @onclick="DeleteProject"
-                                disabled="@isSaving">
-
-                            @(isSaving
-                                ? "Deleting..."
-                                : "Delete project")
-
-                        </button>
-
-                    </div>
-
+            <div class="modal-backdrop" @onclick="CloseEditors">
+                <section class="editor-modal small-editor" @onclick:stopPropagation>
+                    <div class="editor-header"><div><div class="section-index">LOADOUT ITEM</div><h2>@(editingSkillId.HasValue ? "Update skill" : "Add skill")</h2></div><button class="modal-close" type="button" @onclick="CloseEditors">×</button></div>
+                    <form @onsubmit="SaveSkill" @onsubmit:preventDefault>
+                        <div class="field"><label>Category</label><input @bind="skillDraft.Category" placeholder="Programming" /></div>
+                        <div class="field"><label>Skill / tool</label><input @bind="skillDraft.Name" placeholder="C#" /></div>
+                        <div class="field"><label>Display order</label><input type="number" min="0" @bind="skillDraft.SortOrder" /></div>
+                        <EditorError Message="editorError" />
+                        <div class="editor-footer"><button class="btn btn-ghost" type="button" @onclick="CloseEditors">Cancel</button><button class="btn btn-primary" type="submit" disabled="@isSaving">Save skill</button></div>
+                    </form>
                 </section>
+            </div>
+        }
 
+        @if (showExperienceEditor)
+        {
+            <div class="modal-backdrop" @onclick="CloseEditors">
+                <section class="editor-modal" @onclick:stopPropagation>
+                    <div class="editor-header"><div><div class="section-index">TIMELINE ITEM</div><h2>@(editingExperienceId.HasValue ? "Update item" : "Add item")</h2></div><button class="modal-close" type="button" @onclick="CloseEditors">×</button></div>
+                    <form @onsubmit="SaveExperience" @onsubmit:preventDefault>
+                        <div class="field"><label>Organization</label><input @bind="experienceDraft.Organization" /></div>
+                        <div class="field"><label>Role / title</label><input @bind="experienceDraft.Title" /></div>
+                        <div class="field"><label>Period</label><input @bind="experienceDraft.Period" placeholder="DEC 2025 — JUL 2026" /></div>
+                        <div class="field"><label>Description</label><textarea rows="5" maxlength="2000" @bind="experienceDraft.Description"></textarea></div>
+                        <div class="field"><label>Display order</label><input type="number" min="0" @bind="experienceDraft.SortOrder" /></div>
+                        <EditorError Message="editorError" />
+                        <div class="editor-footer"><button class="btn btn-ghost" type="button" @onclick="CloseEditors">Cancel</button><button class="btn btn-primary" type="submit" disabled="@isSaving">Save item</button></div>
+                    </form>
+                </section>
             </div>
         }
     }
 </div>
 
 @code {
-
     private bool checkingSession = true;
     private bool isAuthenticated;
-    private bool loadingProjects;
+    private bool loadingContent;
     private bool isSaving;
-    private bool showEditor;
-
     private string password = string.Empty;
     private string errorMessage = string.Empty;
     private string successMessage = string.Empty;
     private string editorError = string.Empty;
+    private string activeTab = "general";
 
-    private int? editingId;
-
+    private SiteContent content = SiteContentDefaults.Create();
     private List<ProjectItem> projects = [];
+    private List<SkillItem> skills = [];
+    private List<ExperienceItem> experience = [];
 
-    private ProjectUpsert draft = NewDraft();
+    private bool showProjectEditor;
+    private bool showSkillEditor;
+    private bool showExperienceEditor;
+    private int? editingProjectId;
+    private int? editingSkillId;
+    private int? editingExperienceId;
+    private ProjectUpsert projectDraft = new();
+    private SkillUpsert skillDraft = new();
+    private ExperienceUpsert experienceDraft = new();
 
-    private ProjectItem? projectToDelete;
-
+    private readonly List<CmsTab> tabs =
+    [
+        new("general", "General", "00"),
+        new("hero", "Hero", "01"),
+        new("about", "About", "02"),
+        new("skills", "Skills", "03"),
+        new("experience", "Experience", "04"),
+        new("games", "Games", "05"),
+        new("contact", "Contact", "06")
+    ];
 
     protected override async Task OnInitializedAsync()
     {
-        isAuthenticated =
-            await ProjectService.IsAuthenticatedAsync();
-
+        isAuthenticated = await ProjectService.IsAuthenticatedAsync();
         checkingSession = false;
-
-        if (isAuthenticated)
-        {
-            await LoadProjects();
-        }
+        if (isAuthenticated) await LoadAll();
     }
-
 
     private async Task HandleLogin()
     {
         errorMessage = string.Empty;
-
-        if (string.IsNullOrWhiteSpace(password))
-        {
-            errorMessage =
-                "Enter the admin password.";
-
-            return;
-        }
-
+        if (string.IsNullOrWhiteSpace(password)) { errorMessage = "Enter the admin password."; return; }
         try
         {
             isSaving = true;
-
-            isAuthenticated =
-                await ProjectService.LoginAsync(password);
-
-            if (!isAuthenticated)
-            {
-                errorMessage =
-                    "Incorrect password.";
-
-                return;
-            }
-
+            isAuthenticated = await ProjectService.LoginAsync(password);
+            if (!isAuthenticated) { errorMessage = "Incorrect password or admin configuration error."; return; }
             password = string.Empty;
-
-            await LoadProjects();
+            await LoadAll();
         }
-        catch
-        {
-            errorMessage =
-                "Could not connect to the admin API. Check the Cloudflare bindings and secrets.";
-        }
-        finally
-        {
-            isSaving = false;
-        }
+        catch { errorMessage = "Could not connect to the admin API."; }
+        finally { isSaving = false; }
     }
-
 
     private async Task HandleLogout()
     {
         await ProjectService.LogoutAsync();
-
         isAuthenticated = false;
-
-        projects = [];
     }
 
-
-    private async Task LoadProjects()
+    private async Task LoadAll()
     {
-        loadingProjects = true;
-
-        projects =
-            await ProjectService.GetProjectsAsync();
-
-        loadingProjects = false;
+        loadingContent = true;
+        content = await ProjectService.GetContentAsync();
+        projects = await ProjectService.GetProjectsAsync();
+        skills = await ProjectService.GetSkillsAsync();
+        experience = await ProjectService.GetExperienceAsync();
+        loadingContent = false;
     }
 
-
-    private void OpenCreate()
+    private void SelectTab(string key)
     {
+        activeTab = key;
         ClearMessages();
-
-        editingId = null;
-
-        draft = NewDraft(projects.Count);
-
-        showEditor = true;
     }
 
-
-    private void OpenEdit(ProjectItem item)
+    private async Task SaveContent()
     {
-        ClearMessages();
-
-        editingId = item.Id;
-
-        draft = new ProjectUpsert
+        try
         {
-            Title = item.Title,
-            Description = item.Description,
-            Link = item.Link,
-            ImageKey = item.ImageKey,
-            SortOrder = item.SortOrder
-        };
-
-        showEditor = true;
-    }
-
-
-    private void CloseEditor()
-    {
-        if (isSaving)
-        {
-            return;
+            isSaving = true;
+            ClearMessages();
+            await ProjectService.UpdateContentAsync(content);
+            successMessage = "Content saved. The public portfolio now uses these values.";
         }
-
-        showEditor = false;
-
-        editorError = string.Empty;
+        catch (UnauthorizedAccessException) { ExpireSession(); }
+        catch (Exception ex) { errorMessage = $"Could not save content: {ex.Message}"; }
+        finally { isSaving = false; }
     }
 
+    private void OpenCreateProject()
+    {
+        ClearMessages(); editingProjectId = null;
+        projectDraft = new ProjectUpsert { SortOrder = projects.Count + 1 };
+        showProjectEditor = true;
+    }
+
+    private void OpenEditProject(ProjectItem item)
+    {
+        ClearMessages(); editingProjectId = item.Id;
+        projectDraft = new ProjectUpsert { Title = item.Title, Description = item.Description, Link = item.Link, ImageKey = item.ImageKey, SortOrder = item.SortOrder };
+        showProjectEditor = true;
+    }
 
     private async Task SaveProject()
     {
-        editorError = string.Empty;
-
-        if (string.IsNullOrWhiteSpace(draft.Title))
-        {
-            editorError =
-                "Title is required.";
-
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(draft.Description))
-        {
-            editorError =
-                "Description is required.";
-
-            return;
-        }
-
+        if (string.IsNullOrWhiteSpace(projectDraft.Title) || string.IsNullOrWhiteSpace(projectDraft.Description)) { editorError = "Title and description are required."; return; }
         try
         {
-            isSaving = true;
-
-            if (editingId.HasValue)
-            {
-                await ProjectService.UpdateAsync(
-                    editingId.Value,
-                    draft);
-            }
-            else
-            {
-                await ProjectService.CreateAsync(
-                    draft);
-            }
-
-            await LoadProjects();
-
-            showEditor = false;
-
-            successMessage =
-                editingId.HasValue
-                    ? "Project updated."
-                    : "Game published.";
+            isSaving = true; editorError = string.Empty;
+            if (editingProjectId.HasValue) await ProjectService.UpdateAsync(editingProjectId.Value, projectDraft); else await ProjectService.CreateAsync(projectDraft);
+            projects = await ProjectService.GetProjectsAsync();
+            showProjectEditor = false; editorError = string.Empty; successMessage = "Game project saved.";
         }
-        catch (UnauthorizedAccessException)
-        {
-            isAuthenticated = false;
-
-            showEditor = false;
-
-            errorMessage =
-                "Your session expired. Sign in again.";
-        }
-        catch (Exception ex)
-        {
-            editorError =
-                $"Could not save the project: {ex.Message}";
-        }
-        finally
-        {
-            isSaving = false;
-        }
+        catch (UnauthorizedAccessException) { ExpireSession(); }
+        catch (Exception ex) { editorError = $"Could not save project: {ex.Message}"; }
+        finally { isSaving = false; }
     }
 
-
-    private void AskDelete(ProjectItem item)
+    private async Task DeleteProject(ProjectItem item)
     {
-        ClearMessages();
-
-        projectToDelete = item;
+        if (!await ConfirmDelete("project", item.Title)) return;
+        try { await ProjectService.DeleteAsync(item.Id); projects = await ProjectService.GetProjectsAsync(); successMessage = "Project removed."; }
+        catch (UnauthorizedAccessException) { ExpireSession(); }
+        catch (Exception ex) { errorMessage = $"Could not delete project: {ex.Message}"; }
     }
 
-
-    private void CancelDelete()
+    private void OpenCreateSkill()
     {
-        if (!isSaving)
-        {
-            projectToDelete = null;
-        }
+        ClearMessages(); editingSkillId = null;
+        skillDraft = new SkillUpsert { SortOrder = skills.Count + 1 };
+        showSkillEditor = true;
     }
 
-
-    private async Task DeleteProject()
+    private void OpenEditSkill(SkillItem item)
     {
-        if (projectToDelete is null)
-        {
-            return;
-        }
+        ClearMessages(); editingSkillId = item.Id;
+        skillDraft = new SkillUpsert { Category = item.Category, Name = item.Name, SortOrder = item.SortOrder };
+        showSkillEditor = true;
+    }
 
+    private async Task SaveSkill()
+    {
+        if (string.IsNullOrWhiteSpace(skillDraft.Category) || string.IsNullOrWhiteSpace(skillDraft.Name)) { editorError = "Category and skill name are required."; return; }
         try
         {
-            isSaving = true;
-
-            await ProjectService.DeleteAsync(
-                projectToDelete.Id);
-
-            projectToDelete = null;
-
-            await LoadProjects();
-
-            successMessage =
-                "Project removed.";
+            isSaving = true; editorError = string.Empty;
+            if (editingSkillId.HasValue) await ProjectService.UpdateSkillAsync(editingSkillId.Value, skillDraft); else await ProjectService.CreateSkillAsync(skillDraft);
+            skills = await ProjectService.GetSkillsAsync();
+            showSkillEditor = false; editorError = string.Empty; successMessage = "Skill saved.";
         }
-        catch (UnauthorizedAccessException)
-        {
-            isAuthenticated = false;
-
-            projectToDelete = null;
-
-            errorMessage =
-                "Your session expired. Sign in again.";
-        }
-        catch (Exception ex)
-        {
-            errorMessage =
-                $"Could not delete project: {ex.Message}";
-        }
-        finally
-        {
-            isSaving = false;
-        }
+        catch (UnauthorizedAccessException) { ExpireSession(); }
+        catch (Exception ex) { editorError = $"Could not save skill: {ex.Message}"; }
+        finally { isSaving = false; }
     }
 
+    private async Task DeleteSkill(SkillItem item)
+    {
+        if (!await ConfirmDelete("skill", item.Name)) return;
+        try { await ProjectService.DeleteSkillAsync(item.Id); skills = await ProjectService.GetSkillsAsync(); successMessage = "Skill removed."; }
+        catch (UnauthorizedAccessException) { ExpireSession(); }
+        catch (Exception ex) { errorMessage = $"Could not delete skill: {ex.Message}"; }
+    }
+
+    private void OpenCreateExperience()
+    {
+        ClearMessages(); editingExperienceId = null;
+        experienceDraft = new ExperienceUpsert { SortOrder = experience.Count + 1 };
+        showExperienceEditor = true;
+    }
+
+    private void OpenEditExperience(ExperienceItem item)
+    {
+        ClearMessages(); editingExperienceId = item.Id;
+        experienceDraft = new ExperienceUpsert { Organization = item.Organization, Title = item.Title, Period = item.Period, Description = item.Description, SortOrder = item.SortOrder };
+        showExperienceEditor = true;
+    }
+
+    private async Task SaveExperience()
+    {
+        if (string.IsNullOrWhiteSpace(experienceDraft.Organization) || string.IsNullOrWhiteSpace(experienceDraft.Title)) { editorError = "Organization and title are required."; return; }
+        try
+        {
+            isSaving = true; editorError = string.Empty;
+            if (editingExperienceId.HasValue) await ProjectService.UpdateExperienceAsync(editingExperienceId.Value, experienceDraft); else await ProjectService.CreateExperienceAsync(experienceDraft);
+            experience = await ProjectService.GetExperienceAsync();
+            showExperienceEditor = false; editorError = string.Empty; successMessage = "Experience item saved.";
+        }
+        catch (UnauthorizedAccessException) { ExpireSession(); }
+        catch (Exception ex) { editorError = $"Could not save experience: {ex.Message}"; }
+        finally { isSaving = false; }
+    }
+
+    private async Task DeleteExperience(ExperienceItem item)
+    {
+        if (!await ConfirmDelete("experience item", item.Title)) return;
+        try { await ProjectService.DeleteExperienceAsync(item.Id); experience = await ProjectService.GetExperienceAsync(); successMessage = "Experience item removed."; }
+        catch (UnauthorizedAccessException) { ExpireSession(); }
+        catch (Exception ex) { errorMessage = $"Could not delete experience: {ex.Message}"; }
+    }
+
+    private async Task<bool> ConfirmDelete(string type, string name)
+    {
+        return await JsConfirm($"Delete this {type}: {name}?");
+    }
+
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+    private ValueTask<bool> JsConfirm(string message) => JS.InvokeAsync<bool>("confirm", message);
+
+    private void CloseEditors()
+    {
+        if (isSaving) return;
+        showProjectEditor = false; showSkillEditor = false; showExperienceEditor = false; editorError = string.Empty;
+    }
+
+    private void ExpireSession()
+    {
+        isAuthenticated = false; CloseEditors(); errorMessage = "Your session expired. Sign in again.";
+    }
 
     private void ClearMessages()
     {
-        errorMessage = string.Empty;
-        successMessage = string.Empty;
-        editorError = string.Empty;
+        errorMessage = string.Empty; successMessage = string.Empty; editorError = string.Empty;
     }
 
+    private static string Truncate(string value, int length) => value.Length <= length ? value : $"{value[..length]}…";
 
-    private static ProjectUpsert NewDraft(
-        int order = 0) => new()
-    {
-        SortOrder = order
-    };
-
-
-    private static string Truncate(
-        string value,
-        int length) =>
-
-        value.Length <= length
-            ? value
-            : $"{value[..length]}…";
+    private sealed record CmsTab(string Key, string Label, string Index);
 }

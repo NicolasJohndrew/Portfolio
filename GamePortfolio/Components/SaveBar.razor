@@ -1,0 +1,11 @@
+<div class="cms-savebar @(Compact ? "compact" : "")">
+    <span>Changes are published immediately after saving.</span>
+    <button class="btn btn-primary" type="submit" disabled="@Saving">
+        @(Saving ? "Saving..." : "Save changes")
+    </button>
+</div>
+
+@code {
+    [Parameter] public bool Saving { get; set; }
+    [Parameter] public bool Compact { get; set; }
+}

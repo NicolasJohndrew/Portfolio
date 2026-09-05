@@ -1,14 +1,14 @@
 @page "/"
 @inject ProjectService ProjectService
 
-<PageTitle>Johnny Andrew Nicolas — Game Developer</PageTitle>
+<PageTitle>@content.General.SiteName — Game Developer</PageTitle>
 
 <header class="topbar" id="top">
-    <a class="brand" href="#top" aria-label="Johnny Andrew Nicolas home">
-        <span class="brand-mark">JN</span>
+    <a class="brand" href="#top" aria-label="@content.General.SiteName home">
+        <span class="brand-mark">@content.General.BrandMark</span>
         <span class="brand-copy">
-            <strong>Johnny Nicolas</strong>
-            <small>GAME DEV // PH</small>
+            <strong>@content.General.SiteName</strong>
+            <small>@content.General.BrandSubline</small>
         </span>
     </a>
 
@@ -19,9 +19,9 @@
         <a href="#contact">Contact</a>
     </nav>
 
-    <a class="status-chip" href="mailto:johndrewherreranicolas@gmail.com">
+    <a class="status-chip" href="@($"mailto:{content.Contact.Email}")">
         <span class="status-dot"></span>
-        Open to opportunities
+        @content.General.AvailabilityText
     </a>
 </header>
 
@@ -31,36 +31,33 @@
         <div class="hero-noise"></div>
 
         <div class="hero-copy reveal">
-            <div class="eyebrow"><span>PLAYER 01</span> // GAME PROGRAMMER + DEVELOPER</div>
+            <div class="eyebrow"><span>@content.Hero.EyebrowPrefix</span> // @content.Hero.EyebrowText</div>
             <h1>
-                BUILDING WORLDS
-                <span class="hero-outline">PLAYERS REMEMBER.</span>
+                @content.Hero.HeadingLine1
+                <span class="hero-outline">@content.Hero.HeadingLine2</span>
             </h1>
-            <p class="hero-lede">
-                I turn mechanics, atmosphere, and narrative into interactive experiences—
-                from gameplay systems in Unity to experimental worlds in Godot.
-            </p>
+            <p class="hero-lede">@content.Hero.Description</p>
 
             <div class="hero-actions">
-                <a class="btn btn-primary" href="#games">
-                    <span>Explore games</span>
+                <a class="btn btn-primary" href="@content.Hero.PrimaryCtaHref">
+                    <span>@content.Hero.PrimaryCtaLabel</span>
                     <span aria-hidden="true">↘</span>
                 </a>
-                <a class="btn btn-ghost" href="#profile">Player profile</a>
+                <a class="btn btn-ghost" href="@content.Hero.SecondaryCtaHref">@content.Hero.SecondaryCtaLabel</a>
             </div>
 
             <div class="hero-meta">
                 <div>
-                    <span class="meta-label">PRIMARY ENGINE</span>
-                    <strong>UNITY</strong>
+                    <span class="meta-label">@content.Hero.Meta1Label</span>
+                    <strong>@content.Hero.Meta1Value</strong>
                 </div>
                 <div>
-                    <span class="meta-label">LANGUAGE</span>
-                    <strong>C#</strong>
+                    <span class="meta-label">@content.Hero.Meta2Label</span>
+                    <strong>@content.Hero.Meta2Value</strong>
                 </div>
                 <div>
-                    <span class="meta-label">ALT ENGINE</span>
-                    <strong>GODOT</strong>
+                    <span class="meta-label">@content.Hero.Meta3Label</span>
+                    <strong>@content.Hero.Meta3Value</strong>
                 </div>
             </div>
         </div>
@@ -68,8 +65,8 @@
         <div class="hero-visual reveal reveal-delay">
             <div class="signal-card">
                 <div class="signal-top">
-                    <span>LIVE BUILD</span>
-                    <span>v01.26</span>
+                    <span>@content.Hero.VisualTopLeft</span>
+                    <span>@content.Hero.VisualTopRight</span>
                 </div>
 
                 <div class="orbital-stage" aria-hidden="true">
@@ -87,43 +84,40 @@
 
                 <div class="signal-bottom">
                     <div>
-                        <span>CREATIVE MODE</span>
-                        <strong>ACTIVE</strong>
+                        <span>@content.Hero.VisualBottomLabel</span>
+                        <strong>@content.Hero.VisualBottomValue</strong>
                     </div>
                     <div class="signal-bars" aria-hidden="true">
                         <i></i><i></i><i></i><i></i><i></i>
                     </div>
                 </div>
             </div>
-            <div class="floating-tag tag-one">GAMEPLAY SYSTEMS</div>
-            <div class="floating-tag tag-two">LEVEL DESIGN</div>
+            <div class="floating-tag tag-one">@content.Hero.FloatingTag1</div>
+            <div class="floating-tag tag-two">@content.Hero.FloatingTag2</div>
         </div>
 
         <div class="scroll-cue" aria-hidden="true">
-            <span>SCROLL TO ENTER</span>
+            <span>@content.Hero.ScrollLabel</span>
             <i></i>
         </div>
     </section>
 
     <section class="ticker" aria-label="Technology stack">
         <div class="ticker-track">
-            <span>UNITY</span><b>✦</b>
-            <span>C#</span><b>✦</b>
-            <span>GODOT</span><b>✦</b>
-            <span>GDSCRIPT</span><b>✦</b>
-            <span>FIGMA</span><b>✦</b>
-            <span>GAME MECHANICS</span><b>✦</b>
-            <span>VIDEO EDITING</span><b>✦</b>
+            @foreach (var item in TickerSkills)
+            {
+                <span>@item.ToUpperInvariant()</span><b>✦</b>
+            }
         </div>
     </section>
 
     <section class="section projects-section" id="games">
         <div class="section-heading">
             <div>
-                <div class="section-index">01 / SELECTED GAMES</div>
-                <h2>Choose your next world.</h2>
+                <div class="section-index">@content.Projects.SectionLabel</div>
+                <h2>@content.Projects.Heading</h2>
             </div>
-            <p>Gameplay experiments, narrative systems, and interactive projects built with intention.</p>
+            <p>@content.Projects.Intro</p>
         </div>
 
         @if (isLoading)
@@ -170,8 +164,8 @@
 
                         <div class="project-content">
                             <div class="project-kicker">
-                                <span>FEATURED BUILD</span>
-                                <span>GAME DEV</span>
+                                <span>@content.Projects.KickerLeft</span>
+                                <span>@content.Projects.KickerRight</span>
                             </div>
                             <h3>@project.Title</h3>
                             <p>@project.Description</p>
@@ -179,13 +173,13 @@
                             @if (!string.IsNullOrWhiteSpace(project.Link))
                             {
                                 <a class="project-link" href="@project.Link" target="_blank" rel="noopener noreferrer">
-                                    Launch project <span>↗</span>
+                                    @content.Projects.LinkLabel <span>↗</span>
                                 </a>
                             }
                             else
                             {
                                 <span class="project-link project-link-disabled">
-                                    Build link incoming <span>···</span>
+                                    @content.Projects.EmptyLinkLabel <span>···</span>
                                 </span>
                             }
                         </div>
@@ -198,38 +192,32 @@
     <section class="section profile-section" id="profile">
         <div class="profile-panel">
             <div class="profile-left">
-                <div class="section-index">02 / PLAYER PROFILE</div>
-                <h2>Creative by instinct.<br />Technical by craft.</h2>
-                <p>
-                    Passionate and creative game developer with hands-on experience in Unity and Godot,
-                    focused on building game mechanics and clear, engaging digital experiences.
-                </p>
-                <p>
-                    My background also spans video production and UI/UX, giving me a wider lens on pacing,
-                    composition, presentation, and how players experience an interface.
-                </p>
+                <div class="section-index">@content.About.SectionLabel</div>
+                <h2>@content.About.HeadingLine1<br />@content.About.HeadingLine2</h2>
+                <p>@content.About.Paragraph1</p>
+                <p>@content.About.Paragraph2</p>
             </div>
 
             <div class="profile-stats">
                 <div class="stat-card">
                     <span class="stat-index">01</span>
-                    <strong>Unity</strong>
-                    <small>C# development</small>
+                    <strong>@content.About.Highlight1Title</strong>
+                    <small>@content.About.Highlight1Subtitle</small>
                 </div>
                 <div class="stat-card">
                     <span class="stat-index">02</span>
-                    <strong>Godot</strong>
-                    <small>GDScript development</small>
+                    <strong>@content.About.Highlight2Title</strong>
+                    <small>@content.About.Highlight2Subtitle</small>
                 </div>
                 <div class="stat-card">
                     <span class="stat-index">03</span>
-                    <strong>2026</strong>
-                    <small>BS EMC · Game Development</small>
+                    <strong>@content.About.Highlight3Title</strong>
+                    <small>@content.About.Highlight3Subtitle</small>
                 </div>
                 <div class="stat-card accent-stat">
                     <span class="stat-index">04</span>
-                    <strong>Play.</strong>
-                    <small>Prototype. Test. Improve.</small>
+                    <strong>@content.About.Highlight4Title</strong>
+                    <small>@content.About.Highlight4Subtitle</small>
                 </div>
             </div>
         </div>
@@ -238,101 +226,80 @@
     <section class="section skills-section" id="skills">
         <div class="section-heading">
             <div>
-                <div class="section-index">03 / LOADOUT</div>
-                <h2>Tools in the inventory.</h2>
+                <div class="section-index">@content.Skills.SectionLabel</div>
+                <h2>@content.Skills.Heading</h2>
             </div>
         </div>
 
         <div class="loadout-grid">
-            <article class="loadout-card">
-                <span class="loadout-no">A</span>
-                <h3>Programming</h3>
-                <div class="skill-cloud">
-                    <span>C#</span>
-                    <span>Java</span>
-                    <span>GDScript</span>
-                </div>
-            </article>
-
-            <article class="loadout-card">
-                <span class="loadout-no">B</span>
-                <h3>Game engines</h3>
-                <div class="skill-cloud">
-                    <span>Unity</span>
-                    <span>Godot</span>
-                </div>
-            </article>
-
-            <article class="loadout-card">
-                <span class="loadout-no">C</span>
-                <h3>Creative tools</h3>
-                <div class="skill-cloud">
-                    <span>Figma</span>
-                    <span>Premiere Pro</span>
-                    <span>CapCut</span>
-                </div>
-            </article>
+            @{ var groupIndex = 0; }
+            @foreach (var group in SkillGroups)
+            {
+                var letter = ((char)('A' + Math.Min(groupIndex, 25))).ToString();
+                groupIndex++;
+                <article class="loadout-card">
+                    <span class="loadout-no">@letter</span>
+                    <h3>@group.Key</h3>
+                    <div class="skill-cloud">
+                        @foreach (var skill in group.OrderBy(x => x.SortOrder).ThenBy(x => x.Name))
+                        {
+                            <span>@skill.Name</span>
+                        }
+                    </div>
+                </article>
+            }
         </div>
     </section>
 
     <section class="section experience-section">
         <div class="experience-shell">
-            <div class="section-index">04 / EXPERIENCE LOG</div>
+            <div class="section-index">@content.Experience.SectionLabel</div>
 
-            <article class="experience-row">
-                <div class="experience-time">DEC 2025 — JUL 2026</div>
-                <div class="experience-title">
-                    <span>INC Museum</span>
-                    <strong>Video Editor / LED Wall Video Editor</strong>
-                </div>
-                <p>
-                    Produced and optimized video content for exhibits, presentations, and large-format LED
-                    displays while collaborating with the creative team on visual execution.
-                </p>
-            </article>
-
-            <article class="experience-row">
-                <div class="experience-time">2022 — 2026</div>
-                <div class="experience-title">
-                    <span>New Era University</span>
-                    <strong>BS Entertainment &amp; Multimedia Computing</strong>
-                </div>
-                <p>
-                    Specialized in Game Development with practical work across programming,
-                    interactive systems, creative production, and game design.
-                </p>
-            </article>
+            @foreach (var item in DisplayExperience)
+            {
+                <article class="experience-row">
+                    <div class="experience-time">@item.Period</div>
+                    <div class="experience-title">
+                        <span>@item.Organization</span>
+                        <strong>@item.Title</strong>
+                    </div>
+                    <p>@item.Description</p>
+                </article>
+            }
         </div>
     </section>
 
     <section class="contact-section" id="contact">
         <div class="contact-inner">
             <div class="contact-copy">
-                <div class="section-index light-index">05 / START A NEW QUEST</div>
-                <h2>Have a world<br />worth building?</h2>
+                <div class="section-index light-index">@content.Contact.SectionLabel</div>
+                <h2>@content.Contact.HeadingLine1<br />@content.Contact.HeadingLine2</h2>
             </div>
 
             <div class="contact-actions">
-                <p>
-                    Available for game development opportunities, creative collaborations,
-                    and projects where code meets experience.
-                </p>
-                <a class="contact-mail" href="mailto:johndrewherreranicolas@gmail.com">
-                    johndrewherreranicolas@gmail.com <span>↗</span>
+                <p>@content.Contact.Description</p>
+                <a class="contact-mail" href="@($"mailto:{content.Contact.Email}")">
+                    @content.Contact.Email <span>↗</span>
                 </a>
-                <div class="contact-location">San Jose del Monte, Bulacan · Philippines</div>
+                <div class="contact-location">@content.Contact.Location</div>
             </div>
         </div>
 
         <footer>
-            <div>© 2026 Johnny Andrew Nicolas</div>
-            <div class="footer-center">BUILT WITH C# / BLAZOR WASM</div>
+            <div>@content.General.FooterText</div>
+            <div class="footer-center">@content.General.FooterTechText</div>
             <a href="#top">Back to spawn ↑</a>
         </footer>
     </section>
 </main>
 
 @code {
+    private SiteContent content = SiteContentDefaults.Create();
+    private List<ProjectItem> projects = [];
+    private List<SkillItem> skills = [];
+    private List<ExperienceItem> experience = [];
+    private bool isLoading = true;
+
     private readonly List<ProjectItem> fallbackProjects =
     [
         new()
@@ -344,17 +311,71 @@
         }
     ];
 
-    private List<ProjectItem> projects = [];
-    private bool isLoading = true;
+    private readonly List<SkillItem> fallbackSkills =
+    [
+        new() { Id = -1, Category = "Programming", Name = "C#", SortOrder = 1 },
+        new() { Id = -2, Category = "Programming", Name = "Java", SortOrder = 2 },
+        new() { Id = -3, Category = "Programming", Name = "GDScript", SortOrder = 3 },
+        new() { Id = -4, Category = "Game engines", Name = "Unity", SortOrder = 1 },
+        new() { Id = -5, Category = "Game engines", Name = "Godot", SortOrder = 2 },
+        new() { Id = -6, Category = "Creative tools", Name = "Figma", SortOrder = 1 },
+        new() { Id = -7, Category = "Creative tools", Name = "Premiere Pro", SortOrder = 2 },
+        new() { Id = -8, Category = "Creative tools", Name = "CapCut", SortOrder = 3 }
+    ];
+
+    private readonly List<ExperienceItem> fallbackExperience =
+    [
+        new()
+        {
+            Id = -1,
+            Organization = "INC Museum",
+            Title = "Video Editor / LED Wall Video Editor",
+            Period = "DEC 2025 — JUL 2026",
+            Description = "Produced and optimized video content for exhibits, presentations, and large-format LED displays while collaborating with the creative team on visual execution.",
+            SortOrder = 1
+        },
+        new()
+        {
+            Id = -2,
+            Organization = "New Era University",
+            Title = "BS Entertainment & Multimedia Computing",
+            Period = "2022 — 2026",
+            Description = "Specialized in Game Development with practical work across programming, interactive systems, creative production, and game design.",
+            SortOrder = 2
+        }
+    ];
 
     private IEnumerable<ProjectItem> DisplayProjects =>
-        projects.Count > 0
-            ? projects.OrderBy(x => x.SortOrder).ThenByDescending(x => x.Id)
-            : fallbackProjects;
+        (projects.Count > 0 ? projects : fallbackProjects)
+            .OrderBy(x => x.SortOrder)
+            .ThenByDescending(x => x.Id);
+
+    private IEnumerable<SkillItem> DisplaySkills =>
+        skills.Count > 0 ? skills : fallbackSkills;
+
+    private IEnumerable<IGrouping<string, SkillItem>> SkillGroups =>
+        DisplaySkills
+            .GroupBy(x => x.Category)
+            .OrderBy(group => group.Min(x => x.SortOrder));
+
+    private IEnumerable<ExperienceItem> DisplayExperience =>
+        (experience.Count > 0 ? experience : fallbackExperience)
+            .OrderBy(x => x.SortOrder)
+            .ThenBy(x => x.Id);
+
+    private IEnumerable<string> TickerSkills =>
+        DisplaySkills
+            .OrderBy(x => x.SortOrder)
+            .Select(x => x.Name)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(10);
 
     protected override async Task OnInitializedAsync()
     {
+        content = await ProjectService.GetContentAsync();
         projects = await ProjectService.GetProjectsAsync();
+        skills = await ProjectService.GetSkillsAsync();
+        experience = await ProjectService.GetExperienceAsync();
         isLoading = false;
     }
 

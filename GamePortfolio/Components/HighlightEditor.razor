@@ -1,0 +1,22 @@
+<div class="cms-highlight-editor">
+    <span class="cms-highlight-number">@Number</span>
+    <div class="field">
+        <label>Title</label>
+        <input value="@Title" @oninput="OnTitleInput" />
+    </div>
+    <div class="field">
+        <label>Subtitle</label>
+        <input value="@Subtitle" @oninput="OnSubtitleInput" />
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Number { get; set; } = string.Empty;
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> TitleChanged { get; set; }
+    [Parameter] public string Subtitle { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> SubtitleChanged { get; set; }
+
+    private Task OnTitleInput(ChangeEventArgs args) => TitleChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+    private Task OnSubtitleInput(ChangeEventArgs args) => SubtitleChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+}
