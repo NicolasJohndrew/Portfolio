@@ -449,7 +449,7 @@ img {
 }
 
 .core-glow::after {
-    content: "JN";
+    content: "JD";
     position: absolute;
     inset: 0;
     display: grid;
