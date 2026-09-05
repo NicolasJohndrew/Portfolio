@@ -1,0 +1,16 @@
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <section class="not-found-shell">
+                <div class="eyebrow">// LOST SECTOR</div>
+                <h1>404</h1>
+                <p>This level does not exist.</p>
+                <a class="btn btn-primary" href="/">Return to base</a>
+            </section>
+        </LayoutView>
+    </NotFound>
+</Router>

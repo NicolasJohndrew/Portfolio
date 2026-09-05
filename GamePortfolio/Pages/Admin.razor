@@ -1,0 +1,505 @@
+@page "/admin"
+@inject ProjectService ProjectService
+
+<PageTitle>Project Console — Johnny Nicolas</PageTitle>
+
+<div class="admin-shell">
+    @if (checkingSession)
+    {
+        <div class="admin-loading">
+            <div class="admin-loader"></div>
+            <span>VERIFYING SESSION</span>
+        </div>
+    }
+    else if (!isAuthenticated)
+    {
+        <section class="login-panel">
+            <a class="admin-back" href="/">← Back to portfolio</a>
+            <div class="login-card">
+                <div class="admin-badge">JN // ADMIN</div>
+                <h1>Project Console</h1>
+                <p>Authenticate to manage the game library.</p>
+
+                <form @onsubmit="HandleLogin" @onsubmit:preventDefault>
+                    <label for="password">Admin password</label>
+                    <input id="password"
+                           type="password"
+                           autocomplete="current-password"
+                           @bind="password"
+                           placeholder="••••••••••••" />
+
+                    @if (!string.IsNullOrWhiteSpace(errorMessage))
+                    {
+                        <div class="form-error">@errorMessage</div>
+                    }
+
+                    <button class="btn btn-primary admin-login-btn" type="submit" disabled="@isSaving">
+                        @(isSaving ? "Authenticating..." : "Enter console")
+                    </button>
+                </form>
+            </div>
+        </section>
+    }
+    else
+    {
+        <header class="admin-topbar">
+            <a class="brand" href="/">
+                <span class="brand-mark">JN</span>
+                <span class="brand-copy">
+                    <strong>Project Console</strong>
+                    <small>CONTENT MANAGEMENT</small>
+                </span>
+            </a>
+
+            <div class="admin-top-actions">
+                <a class="admin-preview-link" href="/" target="_blank">View portfolio ↗</a>
+                <button class="admin-text-button" type="button" @onclick="HandleLogout">Sign out</button>
+            </div>
+        </header>
+
+        <main class="admin-main">
+            <div class="admin-heading">
+                <div>
+                    <div class="section-index">PROJECT LIBRARY</div>
+                    <h1>Game builds</h1>
+                    <p>Add or update the projects shown on the public portfolio.</p>
+                </div>
+
+                <button class="btn btn-primary" type="button" @onclick="OpenCreate">
+                    + Add game
+                </button>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(successMessage))
+            {
+                <div class="admin-toast success">@successMessage</div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <div class="admin-toast error">@errorMessage</div>
+            }
+
+            <section class="admin-table-shell">
+                @if (loadingProjects)
+                {
+                    <div class="admin-empty">Loading project library...</div>
+                }
+                else if (projects.Count == 0)
+                {
+                    <div class="admin-empty">
+                        <strong>No projects yet.</strong>
+                        <span>Add the first game to populate the portfolio.</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="admin-table">
+                        <div class="admin-row admin-row-head">
+                            <div>Cover</div>
+                            <div>Project</div>
+                            <div>Link</div>
+                            <div>Order</div>
+                            <div>Actions</div>
+                        </div>
+
+                        @foreach (var project in projects.OrderBy(x => x.SortOrder).ThenByDescending(x => x.Id))
+                        {
+                            <div class="admin-row">
+                                <div>
+                                    <div class="admin-thumb">
+                                        @if (!string.IsNullOrWhiteSpace(project.ImageUrl))
+                                        {
+                                            <img src="@project.ImageUrl" alt="" />
+                                        }
+                                        else
+                                        {
+                                            <span>JN</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="admin-project-copy">
+                                    <strong>@project.Title</strong>
+                                    <span>@Truncate(project.Description, 92)</span>
+                                </div>
+
+                                <div>
+                                    @if (!string.IsNullOrWhiteSpace(project.Link))
+                                    {
+                                        <a class="admin-link" href="@project.Link" target="_blank" rel="noopener noreferrer">
+                                            Open ↗
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="admin-muted">—</span>
+                                    }
+                                </div>
+
+                                <div class="admin-order">@project.SortOrder</div>
+
+                                <div class="admin-actions">
+                                    <button type="button" @onclick="() => OpenEdit(project)">Edit</button>
+                                    <button class="danger" type="button" @onclick="() => AskDelete(project)">Delete</button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </section>
+        </main>
+
+        @if (showEditor)
+        {
+            <div class="modal-backdrop" @onclick="CloseEditor">
+                <section class="editor-modal" @onclick:stopPropagation>
+                    <div class="editor-header">
+                        <div>
+                            <div class="section-index">@(editingId.HasValue ? "EDIT BUILD" : "NEW BUILD")</div>
+                            <h2>@(editingId.HasValue ? "Update project" : "Add project")</h2>
+                        </div>
+                        <button class="modal-close" type="button" @onclick="CloseEditor">×</button>
+                    </div>
+
+                    <form @onsubmit="SaveProject" @onsubmit:preventDefault>
+                        <div class="field">
+                            <label for="project-title">Title</label>
+                            <input id="project-title"
+                                   maxlength="120"
+                                   @bind="draft.Title"
+                                   placeholder="Cantilena: Whispers of the Last Song" />
+                        </div>
+
+                        <div class="field">
+                            <label for="project-description">Description</label>
+                            <textarea id="project-description"
+                                      maxlength="2000"
+                                      rows="6"
+                                      @bind="draft.Description"
+                                      placeholder="Describe the game, mechanic, genre, or your role..."></textarea>
+                            <small>@draft.Description.Length / 2000</small>
+                        </div>
+
+                        <div class="field">
+                            <label for="project-link">Game / project link</label>
+                            <input id="project-link"
+                                   type="url"
+                                   @bind="draft.Link"
+                                   placeholder="https://itch.io/..." />
+                        </div>
+
+                        <div class="field">
+                            <label for="project-order">Display order</label>
+                            <input id="project-order"
+                                   type="number"
+                                   min="0"
+                                   @bind="draft.SortOrder" />
+                        </div>
+
+                        <div class="field">
+                            <label>Cover image</label>
+                            <label class="upload-zone @(isUploading ? "is-uploading" : "")">
+                                <InputFile OnChange="HandleFileSelected"
+                                           accept=".jpg,.jpeg,.png,.webp,.gif,.avif,image/jpeg,image/png,image/webp,image/gif,image/avif" />
+                                <span class="upload-icon">↥</span>
+                                <strong>@(isUploading ? "Uploading..." : "Choose game artwork")</strong>
+                                <small>JPG, PNG, WEBP, GIF or AVIF · up to 5 MB</small>
+                            </label>
+
+                            @if (!string.IsNullOrWhiteSpace(previewImageUrl))
+                            {
+                                <div class="upload-preview">
+                                    <img src="@previewImageUrl" alt="Selected project cover preview" />
+                                    <span>Cover ready</span>
+                                </div>
+                            }
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(editorError))
+                        {
+                            <div class="form-error">@editorError</div>
+                        }
+
+                        <div class="editor-footer">
+                            <button class="btn btn-ghost" type="button" @onclick="CloseEditor">Cancel</button>
+                            <button class="btn btn-primary" type="submit" disabled="@(isSaving || isUploading)">
+                                @(isSaving ? "Saving..." : editingId.HasValue ? "Save changes" : "Publish game")
+                            </button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        }
+
+        @if (projectToDelete is not null)
+        {
+            <div class="modal-backdrop" @onclick="CancelDelete">
+                <section class="confirm-modal" @onclick:stopPropagation>
+                    <div class="admin-badge danger-badge">DELETE BUILD</div>
+                    <h2>Remove “@projectToDelete.Title”?</h2>
+                    <p>This will remove the project from the portfolio and delete its stored cover image.</p>
+                    <div class="editor-footer">
+                        <button class="btn btn-ghost" type="button" @onclick="CancelDelete">Cancel</button>
+                        <button class="btn btn-danger" type="button" @onclick="DeleteProject" disabled="@isSaving">
+                            @(isSaving ? "Deleting..." : "Delete project")
+                        </button>
+                    </div>
+                </section>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private bool checkingSession = true;
+    private bool isAuthenticated;
+    private bool loadingProjects;
+    private bool isSaving;
+    private bool isUploading;
+    private bool showEditor;
+
+    private string password = string.Empty;
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+    private string editorError = string.Empty;
+    private string? previewImageUrl;
+    private int? editingId;
+
+    private List<ProjectItem> projects = [];
+    private ProjectUpsert draft = NewDraft();
+    private ProjectItem? projectToDelete;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isAuthenticated = await ProjectService.IsAuthenticatedAsync();
+        checkingSession = false;
+
+        if (isAuthenticated)
+            await LoadProjects();
+    }
+
+    private async Task HandleLogin()
+    {
+        errorMessage = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            errorMessage = "Enter the admin password.";
+            return;
+        }
+
+        try
+        {
+            isSaving = true;
+            isAuthenticated = await ProjectService.LoginAsync(password);
+
+            if (!isAuthenticated)
+            {
+                errorMessage = "Incorrect password.";
+                return;
+            }
+
+            password = string.Empty;
+            await LoadProjects();
+        }
+        catch
+        {
+            errorMessage = "Could not connect to the admin API. Check the Cloudflare bindings and secrets.";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task HandleLogout()
+    {
+        await ProjectService.LogoutAsync();
+        isAuthenticated = false;
+        projects = [];
+    }
+
+    private async Task LoadProjects()
+    {
+        loadingProjects = true;
+        projects = await ProjectService.GetProjectsAsync();
+        loadingProjects = false;
+    }
+
+    private void OpenCreate()
+    {
+        ClearMessages();
+        editingId = null;
+        draft = NewDraft(projects.Count);
+        previewImageUrl = null;
+        showEditor = true;
+    }
+
+    private void OpenEdit(ProjectItem item)
+    {
+        ClearMessages();
+        editingId = item.Id;
+        draft = new ProjectUpsert
+        {
+            Title = item.Title,
+            Description = item.Description,
+            Link = item.Link,
+            ImageKey = item.ImageKey,
+            SortOrder = item.SortOrder
+        };
+        previewImageUrl = item.ImageUrl;
+        showEditor = true;
+    }
+
+    private void CloseEditor()
+    {
+        if (isSaving || isUploading)
+            return;
+
+        showEditor = false;
+        editorError = string.Empty;
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs args)
+    {
+        editorError = string.Empty;
+        var file = args.File;
+
+        if (file.Size > 5 * 1024 * 1024)
+        {
+            editorError = "Image must be 5 MB or smaller.";
+            return;
+        }
+
+        try
+        {
+            isUploading = true;
+            var uploaded = await ProjectService.UploadImageAsync(file);
+
+            if (uploaded is null)
+            {
+                editorError = "Image upload failed.";
+                return;
+            }
+
+            draft.ImageKey = uploaded.Key;
+            previewImageUrl = uploaded.Url;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            isAuthenticated = false;
+            showEditor = false;
+            errorMessage = "Your session expired. Sign in again.";
+        }
+        catch (Exception ex)
+        {
+            editorError = $"Upload failed: {ex.Message}";
+        }
+        finally
+        {
+            isUploading = false;
+        }
+    }
+
+    private async Task SaveProject()
+    {
+        editorError = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(draft.Title))
+        {
+            editorError = "Title is required.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(draft.Description))
+        {
+            editorError = "Description is required.";
+            return;
+        }
+
+        try
+        {
+            isSaving = true;
+
+            if (editingId.HasValue)
+                await ProjectService.UpdateAsync(editingId.Value, draft);
+            else
+                await ProjectService.CreateAsync(draft);
+
+            await LoadProjects();
+            showEditor = false;
+            successMessage = editingId.HasValue ? "Project updated." : "Game published.";
+        }
+        catch (UnauthorizedAccessException)
+        {
+            isAuthenticated = false;
+            showEditor = false;
+            errorMessage = "Your session expired. Sign in again.";
+        }
+        catch (Exception ex)
+        {
+            editorError = $"Could not save the project: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void AskDelete(ProjectItem item)
+    {
+        ClearMessages();
+        projectToDelete = item;
+    }
+
+    private void CancelDelete()
+    {
+        if (!isSaving)
+            projectToDelete = null;
+    }
+
+    private async Task DeleteProject()
+    {
+        if (projectToDelete is null)
+            return;
+
+        try
+        {
+            isSaving = true;
+            await ProjectService.DeleteAsync(projectToDelete.Id);
+            projectToDelete = null;
+            await LoadProjects();
+            successMessage = "Project removed.";
+        }
+        catch (UnauthorizedAccessException)
+        {
+            isAuthenticated = false;
+            projectToDelete = null;
+            errorMessage = "Your session expired. Sign in again.";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Could not delete project: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void ClearMessages()
+    {
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
+        editorError = string.Empty;
+    }
+
+    private static ProjectUpsert NewDraft(int order = 0) => new()
+    {
+        SortOrder = order
+    };
+
+    private static string Truncate(string value, int length) =>
+        value.Length <= length ? value : $"{value[..length]}…";
+}

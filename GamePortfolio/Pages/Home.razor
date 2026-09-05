@@ -1,0 +1,379 @@
+@page "/"
+@inject ProjectService ProjectService
+
+<PageTitle>Johnny Andrew Nicolas — Game Developer</PageTitle>
+
+<header class="topbar" id="top">
+    <a class="brand" href="#top" aria-label="Johnny Andrew Nicolas home">
+        <span class="brand-mark">JN</span>
+        <span class="brand-copy">
+            <strong>Johnny Nicolas</strong>
+            <small>GAME DEV // PH</small>
+        </span>
+    </a>
+
+    <nav class="desktop-nav" aria-label="Main navigation">
+        <a href="#games">Games</a>
+        <a href="#profile">Profile</a>
+        <a href="#skills">Loadout</a>
+        <a href="#contact">Contact</a>
+    </nav>
+
+    <a class="status-chip" href="mailto:johndrewherreranicolas@gmail.com">
+        <span class="status-dot"></span>
+        Open to opportunities
+    </a>
+</header>
+
+<main>
+    <section class="hero-section">
+        <div class="hero-grid"></div>
+        <div class="hero-noise"></div>
+
+        <div class="hero-copy reveal">
+            <div class="eyebrow"><span>PLAYER 01</span> // GAME PROGRAMMER + DEVELOPER</div>
+            <h1>
+                BUILDING WORLDS
+                <span class="hero-outline">PLAYERS REMEMBER.</span>
+            </h1>
+            <p class="hero-lede">
+                I turn mechanics, atmosphere, and narrative into interactive experiences—
+                from gameplay systems in Unity to experimental worlds in Godot.
+            </p>
+
+            <div class="hero-actions">
+                <a class="btn btn-primary" href="#games">
+                    <span>Explore games</span>
+                    <span aria-hidden="true">↘</span>
+                </a>
+                <a class="btn btn-ghost" href="#profile">Player profile</a>
+            </div>
+
+            <div class="hero-meta">
+                <div>
+                    <span class="meta-label">PRIMARY ENGINE</span>
+                    <strong>UNITY</strong>
+                </div>
+                <div>
+                    <span class="meta-label">LANGUAGE</span>
+                    <strong>C#</strong>
+                </div>
+                <div>
+                    <span class="meta-label">ALT ENGINE</span>
+                    <strong>GODOT</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-visual reveal reveal-delay">
+            <div class="signal-card">
+                <div class="signal-top">
+                    <span>LIVE BUILD</span>
+                    <span>v01.26</span>
+                </div>
+
+                <div class="orbital-stage" aria-hidden="true">
+                    <div class="orbit orbit-a"></div>
+                    <div class="orbit orbit-b"></div>
+                    <div class="orbit orbit-c"></div>
+                    <div class="core-glow"></div>
+                    <div class="crosshair crosshair-x"></div>
+                    <div class="crosshair crosshair-y"></div>
+                    <div class="pixel pixel-a"></div>
+                    <div class="pixel pixel-b"></div>
+                    <div class="pixel pixel-c"></div>
+                    <div class="pixel pixel-d"></div>
+                </div>
+
+                <div class="signal-bottom">
+                    <div>
+                        <span>CREATIVE MODE</span>
+                        <strong>ACTIVE</strong>
+                    </div>
+                    <div class="signal-bars" aria-hidden="true">
+                        <i></i><i></i><i></i><i></i><i></i>
+                    </div>
+                </div>
+            </div>
+            <div class="floating-tag tag-one">GAMEPLAY SYSTEMS</div>
+            <div class="floating-tag tag-two">LEVEL DESIGN</div>
+        </div>
+
+        <div class="scroll-cue" aria-hidden="true">
+            <span>SCROLL TO ENTER</span>
+            <i></i>
+        </div>
+    </section>
+
+    <section class="ticker" aria-label="Technology stack">
+        <div class="ticker-track">
+            <span>UNITY</span><b>✦</b>
+            <span>C#</span><b>✦</b>
+            <span>GODOT</span><b>✦</b>
+            <span>GDSCRIPT</span><b>✦</b>
+            <span>FIGMA</span><b>✦</b>
+            <span>GAME MECHANICS</span><b>✦</b>
+            <span>VIDEO EDITING</span><b>✦</b>
+        </div>
+    </section>
+
+    <section class="section projects-section" id="games">
+        <div class="section-heading">
+            <div>
+                <div class="section-index">01 / SELECTED GAMES</div>
+                <h2>Choose your next world.</h2>
+            </div>
+            <p>Gameplay experiments, narrative systems, and interactive projects built with intention.</p>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="project-grid">
+                @for (var i = 0; i < 2; i++)
+                {
+                    <article class="project-card project-skeleton">
+                        <div class="project-media"></div>
+                        <div class="project-content">
+                            <div class="skeleton-line wide"></div>
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line short"></div>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="project-grid">
+                @foreach (var project in DisplayProjects)
+                {
+                    <article class="project-card">
+                        <div class="project-media">
+                            @if (!string.IsNullOrWhiteSpace(project.ImageUrl))
+                            {
+                                <img src="@project.ImageUrl" alt="Cover artwork for @project.Title" loading="lazy" />
+                            }
+                            else
+                            {
+                                <div class="project-placeholder" aria-hidden="true">
+                                    <div class="placeholder-grid"></div>
+                                    <span>@GetProjectInitials(project.Title)</span>
+                                </div>
+                            }
+
+                            <div class="project-number">@GetProjectNumber(project)</div>
+                            <div class="media-corner corner-tl"></div>
+                            <div class="media-corner corner-tr"></div>
+                            <div class="media-corner corner-bl"></div>
+                            <div class="media-corner corner-br"></div>
+                        </div>
+
+                        <div class="project-content">
+                            <div class="project-kicker">
+                                <span>FEATURED BUILD</span>
+                                <span>GAME DEV</span>
+                            </div>
+                            <h3>@project.Title</h3>
+                            <p>@project.Description</p>
+
+                            @if (!string.IsNullOrWhiteSpace(project.Link))
+                            {
+                                <a class="project-link" href="@project.Link" target="_blank" rel="noopener noreferrer">
+                                    Launch project <span>↗</span>
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="project-link project-link-disabled">
+                                    Build link incoming <span>···</span>
+                                </span>
+                            }
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="section profile-section" id="profile">
+        <div class="profile-panel">
+            <div class="profile-left">
+                <div class="section-index">02 / PLAYER PROFILE</div>
+                <h2>Creative by instinct.<br />Technical by craft.</h2>
+                <p>
+                    Passionate and creative game developer with hands-on experience in Unity and Godot,
+                    focused on building game mechanics and clear, engaging digital experiences.
+                </p>
+                <p>
+                    My background also spans video production and UI/UX, giving me a wider lens on pacing,
+                    composition, presentation, and how players experience an interface.
+                </p>
+            </div>
+
+            <div class="profile-stats">
+                <div class="stat-card">
+                    <span class="stat-index">01</span>
+                    <strong>Unity</strong>
+                    <small>C# development</small>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-index">02</span>
+                    <strong>Godot</strong>
+                    <small>GDScript development</small>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-index">03</span>
+                    <strong>2026</strong>
+                    <small>BS EMC · Game Development</small>
+                </div>
+                <div class="stat-card accent-stat">
+                    <span class="stat-index">04</span>
+                    <strong>Play.</strong>
+                    <small>Prototype. Test. Improve.</small>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section skills-section" id="skills">
+        <div class="section-heading">
+            <div>
+                <div class="section-index">03 / LOADOUT</div>
+                <h2>Tools in the inventory.</h2>
+            </div>
+        </div>
+
+        <div class="loadout-grid">
+            <article class="loadout-card">
+                <span class="loadout-no">A</span>
+                <h3>Programming</h3>
+                <div class="skill-cloud">
+                    <span>C#</span>
+                    <span>Java</span>
+                    <span>GDScript</span>
+                </div>
+            </article>
+
+            <article class="loadout-card">
+                <span class="loadout-no">B</span>
+                <h3>Game engines</h3>
+                <div class="skill-cloud">
+                    <span>Unity</span>
+                    <span>Godot</span>
+                </div>
+            </article>
+
+            <article class="loadout-card">
+                <span class="loadout-no">C</span>
+                <h3>Creative tools</h3>
+                <div class="skill-cloud">
+                    <span>Figma</span>
+                    <span>Premiere Pro</span>
+                    <span>CapCut</span>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="section experience-section">
+        <div class="experience-shell">
+            <div class="section-index">04 / EXPERIENCE LOG</div>
+
+            <article class="experience-row">
+                <div class="experience-time">DEC 2025 — JUL 2026</div>
+                <div class="experience-title">
+                    <span>INC Museum</span>
+                    <strong>Video Editor / LED Wall Video Editor</strong>
+                </div>
+                <p>
+                    Produced and optimized video content for exhibits, presentations, and large-format LED
+                    displays while collaborating with the creative team on visual execution.
+                </p>
+            </article>
+
+            <article class="experience-row">
+                <div class="experience-time">2022 — 2026</div>
+                <div class="experience-title">
+                    <span>New Era University</span>
+                    <strong>BS Entertainment &amp; Multimedia Computing</strong>
+                </div>
+                <p>
+                    Specialized in Game Development with practical work across programming,
+                    interactive systems, creative production, and game design.
+                </p>
+            </article>
+        </div>
+    </section>
+
+    <section class="contact-section" id="contact">
+        <div class="contact-inner">
+            <div class="contact-copy">
+                <div class="section-index light-index">05 / START A NEW QUEST</div>
+                <h2>Have a world<br />worth building?</h2>
+            </div>
+
+            <div class="contact-actions">
+                <p>
+                    Available for game development opportunities, creative collaborations,
+                    and projects where code meets experience.
+                </p>
+                <a class="contact-mail" href="mailto:johndrewherreranicolas@gmail.com">
+                    johndrewherreranicolas@gmail.com <span>↗</span>
+                </a>
+                <div class="contact-location">San Jose del Monte, Bulacan · Philippines</div>
+            </div>
+        </div>
+
+        <footer>
+            <div>© 2026 Johnny Andrew Nicolas</div>
+            <div class="footer-center">BUILT WITH C# / BLAZOR WASM</div>
+            <a href="#top">Back to spawn ↑</a>
+        </footer>
+    </section>
+</main>
+
+@code {
+    private readonly List<ProjectItem> fallbackProjects =
+    [
+        new()
+        {
+            Id = -1,
+            Title = "Cantilena: Whispers of the Last Song",
+            Description = "A psychological horror adventure where a hearing-aid mechanic reshapes how players see, hear, explore, and survive a surreal opera world.",
+            SortOrder = 1
+        }
+    ];
+
+    private List<ProjectItem> projects = [];
+    private bool isLoading = true;
+
+    private IEnumerable<ProjectItem> DisplayProjects =>
+        projects.Count > 0
+            ? projects.OrderBy(x => x.SortOrder).ThenByDescending(x => x.Id)
+            : fallbackProjects;
+
+    protected override async Task OnInitializedAsync()
+    {
+        projects = await ProjectService.GetProjectsAsync();
+        isLoading = false;
+    }
+
+    private string GetProjectNumber(ProjectItem project)
+    {
+        var ordered = DisplayProjects.ToList();
+        var index = ordered.FindIndex(x => x.Id == project.Id);
+        return $"{index + 1:00}";
+    }
+
+    private static string GetProjectInitials(string title)
+    {
+        var parts = title
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Where(x => char.IsLetterOrDigit(x[0]))
+            .Take(2)
+            .Select(x => char.ToUpperInvariant(x[0]));
+
+        var initials = string.Concat(parts);
+        return string.IsNullOrWhiteSpace(initials) ? "GAME" : initials;
+    }
+}
