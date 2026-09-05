@@ -321,7 +321,7 @@
                             <div class="upload-preview"><img src="@projectDraft.ImageKey" alt="Cover preview" /><span>Cover preview</span></div>
                         }
                         <div class="field"><label>Display order</label><input type="number" min="0" @bind="projectDraft.SortOrder" /></div>
-                        <EditorError Message="editorError" />
+                        <EditorError Message="@editorError" />
                         <div class="editor-footer"><button class="btn btn-ghost" type="button" @onclick="CloseEditors">Cancel</button><button class="btn btn-primary" type="submit" disabled="@isSaving">@(isSaving ? "Saving..." : "Save project")</button></div>
                     </form>
                 </section>
@@ -337,7 +337,7 @@
                         <div class="field"><label>Category</label><input @bind="skillDraft.Category" placeholder="Programming" /></div>
                         <div class="field"><label>Skill / tool</label><input @bind="skillDraft.Name" placeholder="C#" /></div>
                         <div class="field"><label>Display order</label><input type="number" min="0" @bind="skillDraft.SortOrder" /></div>
-                        <EditorError Message="editorError" />
+                        <EditorError Message="@editorError" />
                         <div class="editor-footer"><button class="btn btn-ghost" type="button" @onclick="CloseEditors">Cancel</button><button class="btn btn-primary" type="submit" disabled="@isSaving">Save skill</button></div>
                     </form>
                 </section>
@@ -355,7 +355,7 @@
                         <div class="field"><label>Period</label><input @bind="experienceDraft.Period" placeholder="DEC 2025 — JUL 2026" /></div>
                         <div class="field"><label>Description</label><textarea rows="5" maxlength="2000" @bind="experienceDraft.Description"></textarea></div>
                         <div class="field"><label>Display order</label><input type="number" min="0" @bind="experienceDraft.SortOrder" /></div>
-                        <EditorError Message="editorError" />
+                        <EditorError Message="@editorError" />
                         <div class="editor-footer"><button class="btn btn-ghost" type="button" @onclick="CloseEditors">Cancel</button><button class="btn btn-primary" type="submit" disabled="@isSaving">Save item</button></div>
                     </form>
                 </section>
